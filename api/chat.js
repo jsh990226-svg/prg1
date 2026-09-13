@@ -95,7 +95,20 @@ export default {
       return Response.json({ error: { message: msg } }, { status: upstream.status });
     }
 
-    const text = Array.isArray(data.content) ? data.content.filter((b) => b && b.type === 'text').map((b) => b.text).join('') : '';
+    let text = Array.isArray(data.content) ? data.content.filter((b) => b && b.type === 'text').map((b) => b.text).join('') : '';
+    if (jsonMode) {
+      const fenceMatch = /^```(?:json)?\s*([\s\S]*?)\s*```$/.exec(text.trim());
+      if (fenceMatch) text = fenceMatch[1];
+    }
+
+    if (!text) {
+      const blockTypes = Array.isArray(data.content) ? data.content.map((b) => b && b.type).join(', ') : String(typeof data.content);
+      return Response.json(
+        { error: { message: 'Claude 응답에 텍스트가 없습니다 (stop_reason=' + data.stop_reason + ', content blocks=[' + blockTypes + ']). 응답 길이 제한을 늘리거나, 데이터 양을 줄여서 다시 시도해보세요.' } },
+        { status: 502 }
+      );
+    }
+
     const finishReason = data.stop_reason === 'max_tokens' ? 'length' : 'stop';
     return Response.json(
       { choices: [{ message: { role: 'assistant', content: text }, finish_reason: finishReason }] },
