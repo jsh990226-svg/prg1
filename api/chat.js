@@ -3,7 +3,7 @@ export const config = { runtime: 'nodejs' };
 
 const ANTHROPIC_VERSION = '2023-06-01';
 const DEFAULT_MODEL = 'claude-sonnet-5';
-const MAX_TOKENS = 4096;
+const MAX_TOKENS = 16000;
 
 function toAnthropicContent(content) {
   if (typeof content === 'string') return content;
